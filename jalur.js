@@ -7,9 +7,10 @@ const info={};K.forEach(k=>info[k[0]]=k);
 const path=[];J.forEach(s=>[...s.k].forEach(c=>path.push({c,id:'kanji-'+c.codePointAt(0).toString(16),stage:s.n,lv:s.lv,order:path.length+1,pre:path.length?['kanji-'+path[path.length-1].c.codePointAt(0).toString(16)]:[]})));
 const idx={};path.forEach((p,i)=>idx[p.c]=i);
 const LVN={N5:'N5',Jembatan:'Jembatan N5–N4',N4:'N4'};
-let S={v:1,free:false,filter:'all',p:{}};
+let S={v:1,free:false,filter:'all',p:{},goal:10,rq:{a:1,b:1,n:10},hist:[]};
 try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.v)S=Object.assign(S,r)}catch(e){}
 try{(JSON.parse(localStorage.getItem('nqkj'))||[]).forEach(c=>{if(idx[c]!==undefined&&!S.p[c])S.p[c]={s:'learning',a:0,ok:0,ng:0,st:0}})}catch(e){}  // migrasi dari tanda "hafal" lama
+if(!S.rq)S.rq={a:1,b:1,n:10};if(!S.goal)S.goal=10;if(!S.hist)S.hist=[];
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const R=c=>S.p[c]||(S.p[c]={s:'',a:0,ok:0,ng:0,st:0});
 function status(i){const c=path[i].c,r=S.p[c];if(r&&r.s)return r.s;if(S.free||i===0)return 'available';const pr=S.p[path[i-1].c];return pr&&pr.s?'available':'locked'}
@@ -29,6 +30,7 @@ window.NQJ={html:function(){
  if(recK)h+=`<div class="jnext"><div class="jk">${recK.c}</div><div><small>Rekomendasi berikutnya</small><b>${esc(info[recK.c][2])}</b></div><button class="btn" onclick="jlOpen(${rec})">Lanjutkan belajar</button></div>`;
  h+=`</div><div class="jbtns"><button class="btn light" onclick="jlOpen(0)">⏮ Mulai dari awal</button><button class="btn light" ${rv?'':'disabled'} onclick="jlReview()">↻ Ulangi yang salah (${rv})</button><button class="btn light${S.free?' on':''}" onclick="jlFree()">${S.free?'🔓 Pelajari bebas: AKTIF':'🔒 Pelajari bebas'}</button></div>`;
  h+=`<div class="pills">${[['all','Semua'],['N5','N5'],['Jembatan','Jembatan N5–N4'],['N4','N4']].map(f=>`<button class="pill${S.filter===f[0]?' active':''}" onclick="jlFilter('${f[0]}')">${f[1]}</button>`).join('')}</div>`;
+ h+=panel();
  h+=J.map((s,si)=>{const ps=path.filter(p=>p.stage===s.n);if(!ps.length||!inF(ps[0]))return '';const ms=ps.filter(p=>status(idx[p.c])==='mastered').length;
   return `<div class="jst bgi" style="--i:${Math.min(si,14)}"><div class="jsh"><span class="jsn">${s.n}</span><div><b>${esc(s.name)}</b><small>${LVN[s.lv]} · ${ps.length} kanji · urutan ${ps[0].order}–${ps[ps.length-1].order}</small></div><span class="tag">${pct(ms,ps.length)}%</span></div><div class="jgrid">${ps.map(p=>chip(p,idx[p.c])).join('')}</div></div>`}).join('');
  h+=`<p class="notice">Urutan ini adalah <b>urutan rekomendasi pembelajaran aplikasi</b> (dari kanji dasar ke kanji yang lebih kompleks, mengikuti tema), bukan urutan resmi ujian. Tingkat N5/N4 mengikuti daftar kanji aplikasi (daftar JLPT tidak resmi yang beredar).</p><button class="btn light wide" onclick="jlReset()">Reset progres jalur</button>`;
@@ -73,6 +75,38 @@ window.jlAns=function(j,btn){if(ans||!Q)return;ans=true;const c=path[cur].c,k=in
 window.jlReview=function(){const q=path.filter((p,i)=>status(i)==='review').map(p=>idx[p.c]);if(!q.length)return;queue=shuf(q);qi=0;sess={ok:0,n:0};jlOpen(queue[0])};
 window.jlNextQ=function(){qi++;if(qi>=queue.length){const o=sess.ok,n=sess.n;queue=null;go('kanji');renderKanji();alert('Sesi selesai!\nBenar '+o+' dari '+n+' soal.')}else jlOpen(queue[qi])};
 
+
+// ---------- target hafalan harian & acak quiz ----------
+function todaySet(){const o=[];for(let i=0;i<path.length&&o.length<S.goal;i++){const r=S.p[path[i].c];if(!r||r.s!=='mastered')o.push(path[i].c)}return o}
+function rec(c,good){const r=R(c);r.a++;r.last=new Date().toISOString().slice(0,10);if(good){r.ok++;r.st=(r.st||0)+1;r.s=r.st>=2?'mastered':'learning'}else{r.ng++;r.st=0;r.s='review'}save()}
+function panel(){const t=todaySet(),g=S.goal,N=[5,10,15,20,30,40];
+ const opts=v=>J.map(s=>`<option value="${s.n}"${s.n===v?' selected':''}>Tahap ${s.n}</option>`).join('');
+ return `<div class="jpanel"><h4>🎯 Target hafalan harian</h4><p class="muted">Mau hafal berapa kanji sehari? Pilih bebas, atau ketik angkanya: <input class="jnum" type="number" min="1" max="100" value="${g}" onchange="jlGoal(this.value)"></p><div class="pills">${N.map(n=>`<button class="pill${g===n?' active':''}" onclick="jlGoal(${n})">${n}</button>`).join('')}</div>
+ <div class="jtoday"><b>Hari ini: ${t.length} kanji</b><div class="jgrid mini">${t.map(c=>`<span class="jch available"><span class="jk">${c}</span></span>`).join('')}</div><div class="bpact"><button class="btn" onclick="jlToday('card')">🃏 Hafalkan</button><button class="btn light" onclick="jlToday('quiz')">✏️ Quiz hari ini</button></div></div></div>
+ <div class="jpanel"><h4>🎲 Acak quiz</h4><p class="muted">Soal diacak dari kanji pada tahap yang kamu pilih (mulai dari tahap pertama).</p><div class="rng"><span>Tahap</span><select onchange="jlRqA(this.value)">${opts(S.rq.a)}</select><span>sampai</span><select onchange="jlRqB(this.value)">${opts(S.rq.b)}</select></div><div class="rng"><span>Jumlah soal</span>${[5,10,20,30].map(n=>`<button class="pill${S.rq.n===n?' active':''}" onclick="jlRqN(${n})">${n}</button>`).join('')}</div><button class="btn wide" onclick="jlRand()">🎲 Mulai acak quiz</button></div>`}
+window.jlGoal=n=>{S.goal=Math.max(1,Math.min(100,+n||10));save();renderKanji()};
+window.jlRqA=v=>{S.rq.a=+v;if(S.rq.b<S.rq.a)S.rq.b=S.rq.a;save();renderKanji()};
+window.jlRqB=v=>{S.rq.b=+v;if(S.rq.a>S.rq.b)S.rq.a=S.rq.b;save();renderKanji()};
+window.jlRqN=n=>{S.rq.n=n;save();renderKanji()};
+window.jlToday=m=>{const t=todaySet();if(!t.length)return;t.forEach(c=>{const r=R(c);if(!r.s)r.s='learning'});save();if(m==='card'){if(window.fdToday)fdToday(t);go('flashcard')}else startRQ(t)};
+window.jlRand=()=>{const pool=path.filter(p=>p.stage>=S.rq.a&&p.stage<=S.rq.b).map(p=>p.c);if(pool.length<1)return;startRQ(shuf(pool).slice(0,S.rq.n))};
+const rq=document.createElement('section');rq.id='kjrq';rq.className='page';$('kanji').after(rq);
+let RQ=null;
+function mk(c){const k=info[c],t=['arti','bacaan','kanji'][Math.floor(Math.random()*3)],val=t==='kanji'?c:k[t==='arti'?2:1];
+ const pool=[...new Set(K.filter(x=>x[0]!==c&&x[4]===k[4]).map(x=>t==='kanji'?x[0]:x[t==='arti'?2:1]).filter(v=>v&&v!==val))];
+ const opts=shuf([val].concat(shuf(pool).slice(0,3)));return{c,t,opts,ok:opts.indexOf(val)}}
+function startRQ(list){RQ={q:list.slice(),i:0,ok:0,wrong:[],ans:false,cur:null};drawRQ();go('kjrq')}
+window.startRQ=startRQ;
+function drawRQ(){const r=RQ,head=(t,p)=>`<div class="subhead"><button class="back" onclick="jlRqExit()">←</button><div><h2>${t}</h2><p>${p||''}</p></div></div>`;
+ if(r.i>=r.q.length){if(!r.saved){r.saved=1;S.hist=S.hist.concat({d:new Date().toISOString().slice(0,10),ok:r.ok,n:r.q.length}).slice(-30);save()}
+  rq.innerHTML=head('Hasil acak quiz')+`<div class="hero-mini"><h3>Skor ${r.ok} / ${r.q.length}</h3><p>${r.ok===r.q.length?'Sempurna! 🎉':'Terus berlatih. Yang salah masuk "Perlu diulang".'}</p></div>${r.wrong.length?`<div class="jpanel"><h4>Perlu diulang</h4><div class="jgrid mini">${r.wrong.map(c=>`<span class="jch review"><span class="jk">${c}</span><small>${esc(info[c][2].split(/[;/]/)[0])}</small></span>`).join('')}</div></div>`:''}<div class="bpact">${r.wrong.length?`<button class="btn" onclick="startRQ(RQ.wrong)">↻ Ulangi yang salah</button>`:''}<button class="btn light" onclick="jlRand()">🎲 Acak lagi</button></div><button class="btn wide" onclick="jlRqExit()">Selesai</button>`;return}
+ const c=r.q[r.i];if(!r.cur)r.cur=mk(c);const m=r.cur,k=info[c];
+ const pr=m.t==='arti'?'Apa arti kanji ini?':m.t==='bacaan'?'Bacaan mana yang benar?':'Kanji mana yang berarti: <b>'+esc(k[2])+'</b>?';
+ rq.innerHTML=head('Acak quiz','Soal '+(r.i+1)+' / '+r.q.length)+`<div class="progress"><span style="width:${r.i/r.q.length*100}%"></span></div><div class="card jqz"><b>${pr}</b>${m.t==='kanji'?'':`<div class="qk">${c}</div>`}${m.opts.map((o,j)=>`<button class="quizopt${m.t==='kanji'?' bigopt':''}${r.ans?(j===m.ok?' ok':j===r.sel?' bad':''):''}" ${r.ans?'disabled':''} onclick="jlRqAns(${j})">${esc(o)}</button>`).join('')}</div>${r.ans?`<div class="hero-mini"><b>${r.good?'🎉 Benar!':'🌱 Belum tepat'}</b><p>${c} = <b>${esc(k[2])}</b> · bacaan ${esc(k[1])} · contoh ${esc(k[3])}</p></div><button class="btn wide" onclick="jlRqNext()">${r.i<r.q.length-1?'Soal berikutnya →':'Lihat hasil'}</button>`:''}`}
+window.jlRqAns=j=>{const r=RQ;if(!r||r.ans)return;r.ans=true;r.sel=j;r.good=j===r.cur.ok;rec(r.cur.c,r.good);if(r.good)r.ok++;else r.wrong.push(r.cur.c);drawRQ()};
+window.jlRqNext=()=>{RQ.i++;RQ.ans=false;RQ.cur=null;drawRQ()};
+window.jlRqExit=()=>{RQ=null;go('kanji');renderKanji()};
+
 // ---------- validasi (dipakai untuk pengujian) ----------
 NQJ.validate=function(){const e=[],ids=new Set(),ord=new Set(),ch=new Set();
  path.forEach(p=>{if(ids.has(p.id))e.push('ID ganda '+p.id);ids.add(p.id);if(ord.has(p.order))e.push('urutan ganda '+p.order);ord.add(p.order);if(ch.has(p.c))e.push('karakter ganda '+p.c);ch.add(p.c);
@@ -82,5 +116,5 @@ NQJ.validate=function(){const e=[],ids=new Set(),ord=new Set(),ch=new Set();
  path.forEach((p,i)=>p.pre.forEach(r=>{if(path.findIndex(x=>x.id===r)>=i)e.push('siklus '+p.id)}));
  let seen4=false;path.forEach(p=>{if(p.lv!=='N5')seen4=true;else if(seen4)e.push('N5 setelah N4 '+p.c)});
  return {total:path.length,n5:path.filter(p=>p.lv==='N5').length,jembatan:path.filter(p=>p.lv==='Jembatan').length,n4:path.filter(p=>p.lv==='N4').length,stages:J.length,errors:e}};
-NQJ.path=path;NQJ.state=()=>S;
+NQJ.path=path;NQJ.record=rec;NQJ.todaySet=todaySet;NQJ.state=()=>S;
 })();

@@ -72,3 +72,23 @@
 .hgroup button.empty,.mixb.empty{opacity:.4}
 #kotoba>button.btn:not(#rlat){display:none!important}
 #wordpills .pill{padding:6px 10px!important;font-size:14px!important}
+
+/* v13: cegah zoom ketuk-dua-kali (pinch dua jari tetap bisa), panel jalur & flashcard */
+*,*::before,*::after{touch-action:manipulation}
+#flashcard>.pills{display:none!important}
+#fdpanel .pills{margin:2px 0!important}#fdpanel .rng{margin:4px 0}
+.fdbar{display:flex;justify-content:space-between;align-items:center;margin:4px 0 6px;color:#c9c9d6;font-size:15px}
+.jpanel{background:var(--panel,#15151c);border:1px solid var(--line,#2e2e3a);border-left:3px solid #e0182d;border-radius:16px;padding:12px;margin:10px 0}
+.jpanel h4{margin:0 0 6px;font-size:19px;color:#fff}.jpanel .muted{font-size:15px;margin:0 0 8px}
+.jnum{width:70px;background:#1d1d27;color:#fff;border:1px solid #e0182d;border-radius:10px;padding:6px 8px;font-size:17px}
+.jtoday{margin-top:8px}.jtoday>b{color:#ff9aa3;font-size:16px}
+.jgrid.mini{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.jgrid.mini .jch{pointer-events:none;min-width:48px}
+.bigopt{font-size:38px!important;text-align:center;font-family:var(--jp,inherit)}
+#kjrq .jqz .qk{font-size:84px;text-align:center;line-height:1.2;font-family:var(--jp,inherit);color:#fff}
+#fdpanel .pills{flex-wrap:wrap!important;overflow:visible!important}
+#fdpanel .pill{padding:6px 12px!important;font-size:15px!important}
+
+#flashcard .flash{min-height:230px!important;padding:14px!important}
+#flashcard .flash .hint{font-size:14px}
+#fdpanel .fdbar{margin:0 0 6px}
+@media (max-height:700px){#flashcard .flash{min-height:170px!important;padding:8px!important}#flashcard .flash .kanji{font-size:56px!important}#flashcard .actions .btn{padding:10px!important}#flashcard .subhead{margin-bottom:2px!important}}

@@ -45,3 +45,16 @@ Semua soal dihasilkan dari data aplikasi sendiri; cerita buatan sendiri. Tidak a
 - **Materi** jadi hub kategori: Pelajaran Bab 1–50, Bunpou, Partikel, Kata kerja, Kotoba, Kanji. Bunpou dipindah ke sini (tombol kembali menuju Materi).
 - **Beranda**: jalur belajar 3 langkah (Belajar Materi, Hafalan, Latihan) menggantikan 9 tombol menu.
 - File baru: v11.js, v11.css. Service worker naik ke nq-v7 (buka aplikasi lalu muat ulang sekali-dua kali agar versi baru terpakai).
+
+## Pembaruan data kotoba (v12)
+Seluruh kotoba Bab 1–50 diperiksa ulang satu per satu. Hasil: 189 entri dikoreksi, 1 entri sampah dihapus (だです。), 2 entri yang hilang ditambahkan (インド di Bab 1, 気をつけます di Bab 23), dan 45 entri yang artinya kosong (39 di Bab 50) diisi dengan arti Indonesia.
+Contoh koreksi: アメキカ→アメリカ (Amerika Serikat), イギリス (India→Inggris), 韓国 (Thailand→Korea Selatan), 友達を会います→友達に会います, ミリク→ミルク, 貨します→貸します, 消しゴマ→消しゴム, かたかな→カタカナ (arti "huruf katakana"), 払います/返します/出かけます (jepang, bacaan, arti yang bergeser), 平均寿命/比べる (arti tertukar), 受賞する, 緊張する (きんちょう), 成人式 (せいじんしき), 本日休業 (ほんじつ), dll.
+Kotoba "Tambahan" (929 entri) hanya dibaca sekilas; tidak ditemukan kesalahan yang jelas. Arti yang kurang pas secara nuansa masih mungkin ada: periksa terhadap buku Minna no Nihongo.
+Service worker naik ke nq-v8.
+
+## Pembaruan v13
+- **Flashcard bebas pilih** (flash2.js): tab Kotoba (rentang bab + jenis kata), Kanji (rentang tahap jalur 1–19 atau "Lainnya" = kanji di luar jalur), Masih sulit, dan Hari ini (hafalan harian). Tombol Acak mengacak urutan kartu. Pilihan tersimpan (kunci nqfd).
+- **Kanji**: mode "Harian · 15/hari" dihapus (sudah digantikan Jalur N5→N4). Di Jalur ada **Target hafalan harian** (pilih 5–40 atau ketik angka bebas; "Hafalkan" membuka flashcard, "Quiz hari ini" menguji kanji itu) dan **Acak quiz** (pilih tahap dari–sampai, mulai dari tahap pertama, jumlah soal 5/10/20/30; tiga jenis soal: arti, bacaan, kanji dari arti). Hasil memperbarui status kanji (dikuasai / perlu diulang) dan riwayat skor tersimpan.
+- **Cerita**: 10 cerita (8 baru, orisinal untuk aplikasi ini), lengkap dengan furigana, mode katakana, romaji, kosakata, dan kuis.
+- **Zoom**: ketuk dua kali tidak lagi memperbesar halaman (touch-action: manipulation); cubit dua jari tetap bisa.
+- Service worker naik ke nq-v9.

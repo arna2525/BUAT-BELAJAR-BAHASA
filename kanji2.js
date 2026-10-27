@@ -26,7 +26,7 @@ window.renderKanji=function(){
  const bar=mode==='path'?'':`<div class="pills">${LV.map(l=>`<button class="pill${l===lv?' active':''}" onclick="kjLv('${l}')">${LVL[l]||l} · ${by(l).length}</button>`).join('')}</div>`;
  if(q){const r=K.filter(k=>(k[0]+k[1]+k[2]+k[3]).toLowerCase().includes(q));
   el.innerHTML=`<div class="ktable">${head}${r.map(row).join('')||'<p class="notice">Kanji tidak ditemukan.</p>'}</div>`;return}
- const modes=[['path','Jalur N5→N4'],['plan','Harian · 15/hari'],['bushu','Bushu'],['all','Semua']].filter(m=>!(m[0]==='bushu'&&(lv==='N3+'||lv==='N3')));
+ const modes=[['path','Jalur N5→N4'],['bushu','Bushu'],['all','Semua']].filter(m=>!(m[0]==='bushu'&&(lv==='N3+'||lv==='N3')));
  const mb=`<div class="pills">${modes.map(m=>`<button class="pill${m[0]===mode?' active':''}" onclick="kjMode('${m[0]}')">${m[1]}</button>`).join('')}</div>`;
  const D=days(lv);let h=bar+mb;
  if(mode==='path'){h+=window.NQJ?NQJ.html():''}else if(mode==='plan'&&day!==null&&D[day]){const a=D[day];
